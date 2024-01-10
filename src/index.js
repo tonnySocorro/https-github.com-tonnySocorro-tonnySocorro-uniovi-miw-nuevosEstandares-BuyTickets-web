@@ -110,12 +110,12 @@ function App(){
   
   const clickBuyTiket = async (i) => {
    
-    
     // Verificar que el usuario tiene suficiente saldo antes de realizar la compra
     if (userBalance.lt(ethers.utils.parseEther("0.02"))) {
       alert("Saldo insuficiente para comprar el ticket tonny");
       return;
     }
+    try {
     const tx = await myContract.current.buyTiket(i, {
       value: ethers.utils.parseEther("0.02"),
       gasLimit: 6721975,
@@ -131,16 +131,23 @@ function App(){
   const userAddress = await signer.getAddress();
   const balance = await provider.getBalance(userAddress);
   setUserBalance(ethers.BigNumber.from(balance));// Actualizar el balance del usuario después de la compra
-  };
-
-
-let withdrawBalance = async () => {
-  const tx = await myContract.current.transferbalanceToAdmin(); 
-}
-function formatEther(weiAmount) {
+} catch (error) {
+  console.error("Error buy Ticket", error.message);
+  alert("Error buy Ticket")
+  } 
+};
+  function formatEther(weiAmount) {
     const etherAmount = weiAmount / 1e18; // 1 Ether = 1e18 Wei
     return etherAmount.toFixed(2);
   }
+let withdrawBalance = async () => {
+  try{const tx = await myContract.current.transferbalanceToAdmin(); }
+ catch (error) {
+  console.error("only admin", error.message);
+  alert("only admin")
+}
+}
+
 
 
 
