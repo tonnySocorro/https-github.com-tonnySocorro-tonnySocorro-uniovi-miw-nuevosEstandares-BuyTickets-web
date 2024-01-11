@@ -12,6 +12,24 @@ function App(){
   const [transactionResult, setTransactionResult] = useState(null);
   const [contractBalances, setContractBalances] = useState({ realBalance: 0, variableBalance: 0 });
   const [userBalance, setUserBalance] = useState(ethers.BigNumber.from(0));
+  const [transferTicketIndex, setTransferTicketIndex] = useState('');
+  const [newOwnerAddress, setNewOwnerAddress] = useState('');
+  const [transferResult, setTransferResult] = useState(null);
+  const transferTicket = async (e) => {
+    e.preventDefault();
+    
+    try {
+        const tx = await myContract.current.transferTicket(transferTicketIndex, newOwnerAddress, {
+            gasLimit: 6721975,
+            gasPrice: 20000000000,
+        });
+        await tx.wait();
+        setTransferResult({ success: true, message: `Ticket ${transferTicketIndex} transferred successfully.` });
+    } catch (error) {
+        console.error(error);
+        setTransferResult({ success: false, message: `Error transferring Ticket ${transferTicketIndex}. See console for details.` });
+    }
+};
   const bookTiket = async (i) => {
     try {
       const tx = await myContract.current.bookTiket(i, {
@@ -21,7 +39,7 @@ function App(){
       await tx.wait();
       setTransactionResult({ success: true, message: `Ticket ${i} reserved successfully.` });
     } catch (error) {
-      console.error(error);
+      console.error(error.message);
       setTransactionResult({ success: false, message: `Error reserving Ticket ${i}. See console for details.` });
     }
   };
@@ -112,7 +130,7 @@ function App(){
    
     // Verificar que el usuario tiene suficiente saldo antes de realizar la compra
     if (userBalance.lt(ethers.utils.parseEther("0.02"))) {
-      alert("Saldo insuficiente para comprar el ticket tonny");
+      alert("Saldo insuficiente para comprar el ticket ");
       return;
     }
     try {
@@ -146,12 +164,7 @@ let withdrawBalance = async () => {
   console.error("only admin", error.message);
   alert("only admin")
 }
-}
-
-
-
-
- 
+} 
   return (
     <div>
         <h1>Tikets store</h1>
@@ -160,7 +173,8 @@ let withdrawBalance = async () => {
             { tikets.map( (address, i) =>
                 <li>Tiket { i } comprado por { address }
                       <>
-                <a href="#" onClick={() => bookTiket(i)}>Reservar</a>
+                      { address == ethers.constants.AddressZero &&      
+                <a href="#" onClick={() => bookTiket(i)}>Reservar</a>}
                 {" | "}
               </>
                     { address == ethers.constants.AddressZero && 
@@ -194,6 +208,27 @@ let withdrawBalance = async () => {
       <div>
         <p>User Balance: {ethers.utils.formatEther(userBalance)} BNB</p>
       </div>
+      <form className="form-inline" onSubmit={transferTicket}>
+                <label>Ticket ID:</label>
+                <input
+                    type="number"
+                    value={transferTicketIndex}
+                    onChange={(e) => setTransferTicketIndex(e.target.value)}
+                />
+                <label>New Owner Address:</label>
+                <input
+                    type="text"
+                    value={newOwnerAddress}
+                    onChange={(e) => setNewOwnerAddress(e.target.value)}
+                />
+                <button type="submit">Transfer Ticket</button>
+            </form>
+
+            {transferResult && (
+                <div className={`alert ${transferResult.success ? "alert-success" : "alert-danger"}`}>
+                    {transferResult.message}
+                </div>
+            )}
     </div>
     
 
